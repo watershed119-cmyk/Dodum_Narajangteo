@@ -1,6 +1,6 @@
-# 나라장터 키워드 입찰공고 이메일 알림
+# 도둠용 나라장터 입찰정보 - 이메일 알림
 
-매일 아침 공공데이터포털의 `조달청_나라장터 입찰공고정보서비스`를 호출해 지정한 키워드가 들어간 입찰공고를 모으고, 중복 발송을 제외한 **신규 공고가 있을 때만** 이메일 요약본을 보내는 Python 앱입니다.
+매일 아침 공공데이터포털의 `조달청_나라장터 입찰공고정보서비스`를 호출해 지정한 키워드(제작설치, 기획전시, 전시관 조성 등)가 들어간 입찰공고를 모으고, 중복 발송을 제외한 **신규 공고만 이메일로 발송**하는 자동화 도구입니다.
 
 ## 기능
 
@@ -37,7 +37,7 @@
 
 ## 로컬 실행
 
-`.env.example`을 참고해 환경 변수를 준비한 뒤 실행합니다. **실제 키·비밀번호는 `.env` 파일에만 두고 git에 올리지 마세요.** (아래 Docker `--env-file .env` 방식이 가장 간단합니다.)
+`.env.example`을 참고해 환경 변수를 준비한 뒤 실행합니다. **실제 키·비밀번호는 `.env` 파일에만 두고 git에 올리지 마세요.**
 
 ```bash
 python -m venv .venv
@@ -55,15 +55,15 @@ narajangteo            # 이메일 발송 및 발송 이력 저장
 ## Docker 실행
 
 ```bash
-docker build -t narajangteo .
-docker run --rm --env-file .env -v "$PWD/.state:/app/.state" narajangteo
+docker build -t dodum-narajangteo .
+docker run --rm --env-file .env -v "$PWD/.state:/app/.state" dodum-narajangteo
 ```
 
 `STATE_FILE=/app/.state/state.json`처럼 컨테이너 내부의 볼륨 경로를 지정하면 중복 발송 이력을 보존할 수 있습니다.
 
 ## GitHub Actions로 평일 아침 실행
 
-`.github/workflows/daily-digest.yml`은 월~금 07:00 KST(22:00 UTC)에 실행되도록 설정되어 있습니다. 토·일·공휴일에는 자동 실행되지 않습니다. 저장소 Secrets에 아래 값을 등록하세요.
+`.github/workflows/daily-digest.yml`은 월~금 07:00 KST(22:00 UTC)에 실행되도록 설정되어 있습니다. 토·일·공휴일에는 자동 실행되지 않습니다. 저장소 Secrets에 다음 환경 변수를 설정하세요:
 
 - `NARA_API_KEY`
 - `NARA_KEYWORDS`
@@ -75,7 +75,7 @@ docker run --rm --env-file .env -v "$PWD/.state:/app/.state" narajangteo
 - `SMTP_PASSWORD`
 - `SMTP_SENDER`(선택)
 
-> 참고: GitHub Actions의 기본 예시는 저장소 캐시로 발송 이력 파일을 보존합니다. 운영 환경에서는 작은 VPS/서버의 cron 또는 영구 볼륨이 있는 컨테이너 작업을 권장합니다.
+> 참고: GitHub Actions의 기본 예시는 저장소 캐시로 발송 이력 파일을 보존합니다. 운영 환경에서는 작은 VPS/서버의 cron 또는 영구 볼륨이 있는 컨테이너 레지스트리 사용을 권장합니다.
 
 ### 실행·오류 확인
 
@@ -89,4 +89,4 @@ docker run --rm --env-file .env -v "$PWD/.state:/app/.state" narajangteo
 - 공고명 검색 파라미터(`bidNtceNm`)를 사용하므로 키워드는 너무 길게 쓰기보다 핵심 명사 위주로 나누는 편이 좋습니다.
 - 공공데이터포털 인증키 오류가 나면 Encoding 키가 아닌 Decoding 키를 `NARA_API_KEY`에 넣었는지 확인하세요.
 - 메일이 스팸함으로 가면 `SMTP_SENDER` 도메인의 SPF/DKIM 설정을 확인하세요.
-- API 키·SMTP 비밀번호는 README나 코드에 넣지 말고 `.env`(로컬) 또는 GitHub Secrets(Actions)에만 보관하세요. 실수로 공개했다면 **즉시 삭제하고 키를 재발급**하세요. README에서 지워도 **과거 git 커밋 기록에는 남을 수 있습니다.**
+- API 키·SMTP 비밀번호는 README나 코드에 넣지 말고 `.env`(로컬) 또는 GitHub Secrets(Actions)에만 보관하세요. 실수로 공개했다면 **즉시 삭제하고 키를 재발급**하세요.
