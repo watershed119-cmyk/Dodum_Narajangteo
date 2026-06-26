@@ -8,8 +8,8 @@ on:
         required: false
         default: false
         type: boolean
-  schedule:
-    - cron: "0 22 * * 0-4" # 월~금 07:00 KST (UTC 기준 일~목 22:00)
+schedule:
+  - cron: "30 22 * * 0-4" # 월~금 07:30 KST (UTC 기준 일~목 22:30)
 
 jobs:
   send-digest:
