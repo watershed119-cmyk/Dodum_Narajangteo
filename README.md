@@ -1,6 +1,6 @@
 # 도둠용 나라장터 입찰정보 - 이메일 알림
 
-매일 아침 공공데이터포털의 `조달청_나라장터 입찰공고정보서비스`를 호출해 지정한 키워드(제작설치, 기획전시, 전시관 조성 등)가 들어간 입찰공고를 모으고, 중복 발송을 제외한 **신규 공고만 이메일로 발송**하는 자동화 도구입니다.
+매일 아침 공공데이터포털의 `조달청_나라장터 입찰공고정보서비스`를 호출해 지정한 키워드(제작설치, 기획전시, 전시관 조성 등)가 들어간 입찰공고를 모으고, **신규 공고가 있으면 목록을, 없으면 없음 안내를** 이메일로 보내는 자동화 도구입니다.
 
 ## 기능
 
@@ -9,7 +9,7 @@
 - 최근 N일 범위 조회(`LOOKBACK_DAYS`, 기본 1일)
 - 공고번호와 차수 기준 중복 제거 및 발송 이력 저장
 - 텍스트/HTML 이메일 동시 생성
-- 신규 공고가 있을 때만 이메일 발송 (없으면 메일 생략)
+- 신규 공고가 있으면 목록 메일, 없으면 **「조건에 맞는 신규 입찰공고가 없습니다」** 안내 메일 발송
 - 로컬 실행, Docker 실행, GitHub Actions 평일 아침 예약 실행 지원
 
 ## 준비물
@@ -48,8 +48,8 @@ cp .env.example .env          # Windows: copy .env.example .env
 # .env에 실제 값 입력 후, Docker 섹션처럼 --env-file .env 로 실행하거나
 # 셸에 환경 변수를 직접 export/set 한 뒤 narajangteo 실행
 
-narajangteo --dry-run  # 이메일 발송 없이 내용 확인
-narajangteo            # 이메일 발송 및 발송 이력 저장
+narajangteo --dry-run              # 이메일 발송 없이 내용 확인
+narajangteo --force-send-empty     # 공고 없어도 안내 메일 발송 (Actions 기본 동작)
 ```
 
 ## Docker 실행
@@ -63,7 +63,7 @@ docker run --rm --env-file .env -v "$PWD/.state:/app/.state" dodum-narajangteo
 
 ## GitHub Actions로 매일 아침 실행
 
-`.github/workflows/daily-digest.yml`은 매일 08:30 KST(23:30 UTC)에 실행되도록 설정되어 있습니다. 신규 공고가 없으면 메일은 생략됩니다. 저장소 Secrets에 다음 환경 변수를 설정하세요:
+`.github/workflows/daily-digest.yml`은 매일 08:30 KST(23:30 UTC)에 실행되도록 설정되어 있습니다. **신규 공고가 없어도 안내 메일을 보냅니다.** 저장소 Secrets에 다음 환경 변수를 설정하세요:
 
 - `NARA_API_KEY`
 - `NARA_KEYWORDS`
@@ -79,10 +79,9 @@ docker run --rm --env-file .env -v "$PWD/.state:/app/.state" dodum-narajangteo
 
 ### 실행·오류 확인
 
-- **신규 공고 없음**: 메일은 오지 않지만 Actions 실행은 **초록색(성공)** 으로 끝납니다. 로그에 `No new notices; email skipped`가 보입니다.
+- **신규 공고 없음**: **「신규 입찰공고 0건」** 안내 메일이 발송됩니다. Actions 실행도 **초록색(성공)** 으로 끝납니다.
 - **API/SMTP 오류 등**: Actions 실행이 **빨간색(실패)** 으로 표시됩니다. 저장소 **Actions** 탭에서 해당 실행의 로그를 확인하세요.
 - GitHub **Settings → Notifications**에서 **Actions** 실패 알림을 켜 두면, 메일이 없어도 오류를 이메일로 받을 수 있습니다.
-- 수신 테스트가 필요하면 Actions 수동 실행(`Run workflow`)에서 `force_send_empty=true`로 실행하면 신규 공고가 없어도 테스트 메일을 보낼 수 있습니다.
 - 장애 등으로 며칠치 공고를 한꺼번에 확인하려면 수동 실행에서 `lookback_days=5`처럼 조회 기간을 넓혀 실행하세요. 이미 발송한 공고는 상태 파일로 중복 발송되지 않습니다.
 
 ## 운영 팁

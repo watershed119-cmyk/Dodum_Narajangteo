@@ -3,11 +3,6 @@ name: Daily 나라장터 digest
 on:
   workflow_dispatch:
     inputs:
-      force_send_empty:
-        description: Send test email even without new notices
-        required: false
-        default: false
-        type: boolean
       lookback_days:
         description: Override LOOKBACK_DAYS (e.g. 5 to catch up after an outage)
         required: false
@@ -51,9 +46,4 @@ jobs:
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
           LOOKBACK_DAYS: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
           STATE_FILE: .state/sent.json
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_send_empty }}" = "true" ]; then
-            narajangteo --force-send-empty
-          else
-            narajangteo
-          fi
+        run: narajangteo --force-send-empty
