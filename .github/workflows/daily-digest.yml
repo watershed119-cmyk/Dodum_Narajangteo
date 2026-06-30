@@ -8,9 +8,14 @@ on:
         required: false
         default: false
         type: boolean
+      lookback_days:
+        description: Override LOOKBACK_DAYS (e.g. 5 to catch up after an outage)
+        required: false
+        default: "1"
+        type: string
 
   schedule:
-    - cron: "30 23 * * *" # 매일 오전 8시 KST (UTC 기준 23:00)
+    - cron: "30 23 * * *" # 매일 08:30 KST (UTC 23:30)
 
 jobs:
   send-digest:
@@ -26,7 +31,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .state
-          key: narajangteo-state-${{ github.run_id }}
+          key: narajangteo-state-${{ github.ref_name }}
           restore-keys: |
             narajangteo-state-
 
@@ -37,12 +42,14 @@ jobs:
         env:
           NARA_API_KEY: ${{ secrets.NARA_API_KEY }}
           NARA_KEYWORDS: ${{ secrets.NARA_KEYWORDS }}
+          NARA_EXCLUDE_KEYWORDS: ${{ secrets.NARA_EXCLUDE_KEYWORDS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+          LOOKBACK_DAYS: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
           STATE_FILE: .state/sent.json
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_send_empty }}" = "true" ]; then

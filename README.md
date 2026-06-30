@@ -61,9 +61,9 @@ docker run --rm --env-file .env -v "$PWD/.state:/app/.state" dodum-narajangteo
 
 `STATE_FILE=/app/.state/state.json`처럼 컨테이너 내부의 볼륨 경로를 지정하면 중복 발송 이력을 보존할 수 있습니다.
 
-## GitHub Actions로 평일 아침 실행
+## GitHub Actions로 매일 아침 실행
 
-`.github/workflows/daily-digest.yml`은 월~금 07:00 KST(22:00 UTC)에 실행되도록 설정되어 있습니다. 토·일·공휴일에는 자동 실행되지 않습니다. 저장소 Secrets에 다음 환경 변수를 설정하세요:
+`.github/workflows/daily-digest.yml`은 매일 08:30 KST(23:30 UTC)에 실행되도록 설정되어 있습니다. 신규 공고가 없으면 메일은 생략됩니다. 저장소 Secrets에 다음 환경 변수를 설정하세요:
 
 - `NARA_API_KEY`
 - `NARA_KEYWORDS`
@@ -83,6 +83,7 @@ docker run --rm --env-file .env -v "$PWD/.state:/app/.state" dodum-narajangteo
 - **API/SMTP 오류 등**: Actions 실행이 **빨간색(실패)** 으로 표시됩니다. 저장소 **Actions** 탭에서 해당 실행의 로그를 확인하세요.
 - GitHub **Settings → Notifications**에서 **Actions** 실패 알림을 켜 두면, 메일이 없어도 오류를 이메일로 받을 수 있습니다.
 - 수신 테스트가 필요하면 Actions 수동 실행(`Run workflow`)에서 `force_send_empty=true`로 실행하면 신규 공고가 없어도 테스트 메일을 보낼 수 있습니다.
+- 장애 등으로 며칠치 공고를 한꺼번에 확인하려면 수동 실행에서 `lookback_days=5`처럼 조회 기간을 넓혀 실행하세요. 이미 발송한 공고는 상태 파일로 중복 발송되지 않습니다.
 
 ## 운영 팁
 
